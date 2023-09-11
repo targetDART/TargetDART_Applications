@@ -11,7 +11,7 @@ typedef struct point{
 
 int main(int argc, char** argv) {
 	
-    initTargetDART(&argc, &argv, (void *) &main);
+    initTargetDART((void *) &main);
 
 
     //std::cout << testFunction(&argc, &argv) << std::endl;
@@ -39,13 +39,13 @@ int main(int argc, char** argv) {
     std::cout << "point address" << points << std::endl;
     std::cout << "memory address" << memory << std::endl;
 
-    # pragma omp target teams distribute parallel for map(from:memory[0:n]) device(100) nowait
+    # pragma omp target teams distribute parallel for map(from:memory[0:n]) device(TARGETDART_ANY) nowait
         for (int i = 0; i < n; ++i) {
             memory[i] = point.x + a + point.y[2];
         }
     #pragma omp taskwait
     for (int j = 0; j < 4; j++) {
-    # pragma omp target teams distribute parallel for map(from:memory2[0:n]) map(to:points[0:n]) device(100) nowait
+    # pragma omp target teams distribute parallel for map(from:memory2[0:n]) map(to:points[0:n]) device(TARGETDART_ANY) nowait
         for (int i = 0; i < n; ++i) {
             memory2[i] = omp_get_device_num() + a - b;
         }
