@@ -39,11 +39,11 @@ int main(int argc, char** argv) {
     #pragma omp parallel for
     for (int l = 0; l < iter; l++) {
         for (int p = 0; p < chain; p++) {
-            #pragma omp target teams distribute map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(TARGETDART_ANY) nowait depend(inout:pipe[i])
+            #pragma omp target teams distribute map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(TARGETDART_ANY) nowait depend(inout:pipe[p])
             for (int i = 0; i < d1; i++) {
                 #pragma omp parallel for
-                for (int k = 0; k < d3; j++) {
-                    for (int j = 0; j < d2; k++) {
+                for (int k = 0; k < d3; k++) {
+                    for (int j = 0; j < d2; j++) {
                         C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
                     }   
                 }
