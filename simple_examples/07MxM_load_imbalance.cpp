@@ -8,8 +8,9 @@
 int main(int argc, char** argv) {
 
     int rank, size;
+    int provided;
 
-    MPI_Init(&argc, &argv);
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 	
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
         td_phase_progress(p);
         #pragma omp for
         for (int l = 0; l < iter; l++) {
-            #pragma omp target teams distribute map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(TARGETDART_ANY) nowait depend(inout:pipe[p]) depend(in:chain)
+            #pragma omp target teams distribute map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(TARGETDART_ANY) nowait depend(inout:pipe[p]) depend(in:chain)
             for (int i = 0; i < d1; i++) {
                 #pragma omp parallel for
                 for (int k = 0; k < d3; k++) {
