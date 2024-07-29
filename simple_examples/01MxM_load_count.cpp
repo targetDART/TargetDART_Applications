@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 	
 	// targetDART initialization
-    initTargetDART((void *) &main);
+    td_init((void *) &main);
 
     if (argc < 4 + size) {
         std::cerr << "not enough arguments: For " << size << " MPI processes you need at least " << 4 +size << " Arguments" << std::endl;
@@ -50,14 +50,16 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     time = omp_get_wtime() - time;
     
-    if (rank == 0)
-    std::cout << "duration on process " << rank << ": " << time << std::endl;
+    if (rank == 0) {
+        std::cout << "duration on process " << rank << ": " << time << std::endl;
+        std::cout << "Result:  " << C[0] << std::endl;
+    }
     
     free(A);
     free(B);
     free(C);
     
-    finalizeTargetDART();
+    //finalizeTargetDART();
     MPI_Finalize();
     return 0;
 }

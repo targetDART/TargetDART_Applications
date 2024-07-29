@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 	
 	// targetDART initialization
-    initTargetDART((void *) &main);
+    td_init((void *) &main);
 
     if (argc < 4 + size) {
         std::cerr << "not enough arguments: For " << size << " MPI processes you need at least " << 5 +size << " Arguments" << std::endl;
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     free(B);
     free(C);
     
-    finalizeTargetDART();
+    //finalizeTargetDART();
     MPI_Finalize();
     return 0;
 }

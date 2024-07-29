@@ -11,7 +11,7 @@ typedef struct point{
 
 int main(int argc, char** argv) {
 	
-    initTargetDART((void *) &main);
+    td_init((void *) &main);
 
 
     //std::cout << testFunction(&argc, &argv) << std::endl;
@@ -57,6 +57,6 @@ int main(int argc, char** argv) {
     free(memory);
     free(memory2);
     
-    finalizeTargetDART();
+    //finalizeTargetDART();
     return 0;
 }
