@@ -35,6 +35,16 @@ int main(int argc, char** argv) {
     double * B = (double*) malloc(d2 * d3 * sizeof(double));
     double * C = (double*) malloc(d1 * d3 * sizeof(double));
     
+    for (int i = 0; i < d1 * d2; i++) {
+        A[i] = 1;
+    }
+    for (int i = 0; i < d2 * d3; i++) {
+        B[i] = 1;
+    }
+    for (int i = 0; i < d1 * d3; i++) {
+        C[i] = 0;
+    }
+
     double time = omp_get_wtime();   
     
     #pragma omp parallel for

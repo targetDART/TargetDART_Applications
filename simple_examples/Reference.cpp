@@ -29,10 +29,20 @@ int main(int argc, char** argv) {
     double * B = (double*) malloc(d2 * d3 * sizeof(double));
     double * C = (double*) malloc(d1 * d3 * sizeof(double));
     
+    for (int i = 0; i < d1 * d2; i++) {
+        A[i] = 1;
+    }
+    for (int i = 0; i < d2 * d3; i++) {
+        B[i] = 1;
+    }
+    for (int i = 0; i < d1 * d3; i++) {
+        C[i] = 0;
+    }
+
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
-        #pragma omp target teams distribute parallel for collapse(2) map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l%(omp_get_num_devices() + 1)) nowait
+        #pragma omp target teams distribute parallel for map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l%(omp_get_num_devices() + 1)) nowait
         for (int i = 0; i < d1; i++) {
             for (int j = 0; j < d2; j++) {
                 for (int k = 0; k < d3; k++) {
