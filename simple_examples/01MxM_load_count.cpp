@@ -17,8 +17,10 @@ int main(int argc, char** argv) {
 	// targetDART initialization
     td_init((void *) &main);
 
+    std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
+
     if (argc < 4 + size) {
-        std::cerr << "not enough arguments: For " << size << " MPI processes you need at least " << 4 +size << " Arguments" << std::endl;
+        std::cerr << "not enough arguments: For " << size << " MPI processes you need at least " << 4 + size << " Arguments" << std::endl;
         exit(1);
     }
     
