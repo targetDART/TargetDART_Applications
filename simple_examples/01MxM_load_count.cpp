@@ -19,13 +19,18 @@ int main(int argc, char** argv) {
 	// targetDART initialization
     td_init((void *) &main);
 
-    std::string mode = std::getenv("MODE");
-    if (mode == "CPU") {
-        device = TARGETDART_CPU;
-    } else if (mode == "GPU") {
-        device = TARGETDART_OFFLOAD;
-    } else {
+    if (std::getenv("MODE") == NULL) {
         device = TARGETDART_ANY;
+    } else {
+
+        std::string mode = std::getenv("MODE");
+        if (mode == "CPU") {
+            device = TARGETDART_CPU;
+        } else if (mode == "GPU") {
+            device = TARGETDART_OFFLOAD;
+        } else {
+            device = TARGETDART_ANY;
+        }
     }
 
     //std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
