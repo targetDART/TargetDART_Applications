@@ -3,12 +3,14 @@
 #include <cstdlib>
 #include <omp.h>
 #include <mpi.h>
+#include <string>
 
 
 int main(int argc, char** argv) {
 
     int rank, size;
     int provided;
+    int device;
 
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -16,6 +18,15 @@ int main(int argc, char** argv) {
 	
 	// targetDART initialization
     td_init((void *) &main);
+
+    std::string mode = std::getenv("MODE");
+    if (mode == "CPU") {
+        device = TARGETDART_CPU;
+    } else if (mode == "GPU") {
+        device = TARGETDART_GPU;
+    } else {
+        device = TARGETDART_ANY;
+    }
 
     //std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
 
@@ -47,7 +58,7 @@ int main(int argc, char** argv) {
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
-        #pragma omp target teams distribute parallel for map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(TARGETDART_CPU) nowait
+        #pragma omp target teams distribute parallel for map(from:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(device) nowait
         for (int i = 0; i < d1; i++) {
             for (int j = 0; j < d2; j++) {
                 for (int k = 0; k < d3; k++) {
