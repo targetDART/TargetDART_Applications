@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 	// targetDART initialization
     td_init((void *) &main);
 
-    std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
+    //std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
 
     if (argc < 4 + size) {
         std::cerr << "not enough arguments: For " << size << " MPI processes you need at least " << 4 + size << " Arguments" << std::endl;
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     
     if (rank == 0) {
         std::cout << "duration on process " << rank << ": " << time << std::endl;
-        std::cout << "Result:  " << C[0] << std::endl;
+        //std::cout << "Result:  " << C[0] << std::endl;
     }
     
     free(A);
