@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     if (mode == "CPU") {
         device = TARGETDART_CPU;
     } else if (mode == "GPU") {
-        device = TARGETDART_GPU;
+        device = TARGETDART_OFFLOAD;
     } else {
         device = TARGETDART_ANY;
     }
