@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     }
 
     for (int l = 0; l < omp_get_num_devices(); l++) {
-        #pragma omp target enter data map(to:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(i)
+        #pragma omp target enter data map(to:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l)
     }
 
     double time = omp_get_wtime();   
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     time = omp_get_wtime() - time;
 
     for (int l = 0; l < omp_get_num_devices(); l++) {
-        #pragma omp target exit data map(from:C[0:d1*d3]) map(delete:A[0:d1*d2]) map(delete:B[0:d2*d3]) map(delete:d1,d2,d3) device(i)
+        #pragma omp target exit data map(from:C[0:d1*d3]) map(delete:A[0:d1*d2]) map(delete:B[0:d2*d3]) map(delete:d1,d2,d3) device(l)
     }
     
     if (rank == 0)
