@@ -46,10 +46,11 @@ int main(int argc, char** argv) {
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
-        #pragma omp target teams distribute parallel for device(l%omp_get_num_devices()) nowait
+        #pragma omp target teams distribute parallel for device(l%omp_get_num_devices())  collapse(2) nowait
         for (int i = 0; i < d1; i++) {
-            for (int j = 0; j < d2; j++) {
-                for (int k = 0; k < d3; k++) {
+            for (int k = 0; k < d3; k++) {
+                C[i * d3 + k] = 0;
+                for (int j = 0; j < d2; j++) {                
                     C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
                 }   
             }
