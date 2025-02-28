@@ -46,9 +46,31 @@ int main(int argc, char** argv) {
     
     int iter = std::atoi(argv[rank + 4]);
 
-    double * A = (double*) malloc(d1 * d2 * sizeof(double));
-    double * B = (double*) malloc(d2 * d3 * sizeof(double));
-    double * C = (double*) malloc(d1 * d3 * sizeof(double));
+    // enable paged memory only when PAGED is explcitly enabled
+    bool paged = false;
+    if (auto *paged_env = std::getenv("PAGED")) {
+        std::string paged_str = paged_env;
+        paged = !(paged_str == "0" || paged_str.empty());
+    }
+
+    double *A, *B, *C;
+    int *d;
+
+    if (paged) {
+        A = (double*) malloc(d1 * d2 * sizeof(double));
+        B = (double*) malloc(d2 * d3 * sizeof(double));
+        C = (double*) malloc(d1 * d3 * sizeof(double));
+        d = (int*) malloc(3 * sizeof(int));
+    } else {
+        A = (double*)omp_alloc(d1 * d2 * sizeof(double), llvm_omp_target_host_mem_alloc);
+        B = (double*)omp_alloc(d2 * d3 * sizeof(double), llvm_omp_target_host_mem_alloc);
+        C = (double*)omp_alloc(d1 * d3 * sizeof(double), llvm_omp_target_host_mem_alloc);
+        d = (int*)omp_alloc(3*sizeof(int), llvm_omp_target_host_mem_alloc);
+    }
+
+    d[0] = d1;
+    d[1] = d2;
+    d[2] = d3;
 
     for (int i = 0; i < d1 * d2; i++) {
         A[i] = 1;
@@ -61,15 +83,15 @@ int main(int argc, char** argv) {
     }
     
     double time = omp_get_wtime();   
-    #pragma omp target data map(to:A[0:d1*d2],B[0:d2*d3],d1,d2,d3) device(device)
+    #pragma omp target data map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d[0:3]) device(device)
     {
     for (int l = 0; l < iter; l++) {
         #pragma omp target teams distribute parallel for map(from:C[0:d1*d3]) device(device) collapse(2) nowait
-        for (int i = 0; i < d1; i++) {
-            for (int k = 0; k < d3; k++) {
-                C[i * d3 + k] = 0;
-                for (int j = 0; j < d2; j++) {                
-                    C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
+        for (int i = 0; i < d[0]; i++) {
+            for (int k = 0; k < d[2]; k++) {
+                C[i * d[2] + k] = 0;
+                for (int j = 0; j < d[1]; j++) {
+                    C[i * d[2] + k] += A[i * d[1] + j] * B[j * d[2] + k];
                 }   
             }
         }
