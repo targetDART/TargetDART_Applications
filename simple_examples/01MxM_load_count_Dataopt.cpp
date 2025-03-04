@@ -109,9 +109,17 @@ int main(int argc, char** argv) {
         //std::cout << "Result:  " << C[0] << std::endl;
     }
     
-    free(A);
-    free(B);
-    free(C);
+    if (paged) {
+        free(A);
+        free(B);
+        free(C);
+        free(d);
+    } else {
+        omp_free(A, llvm_omp_target_host_mem_alloc);
+        omp_free(B, llvm_omp_target_host_mem_alloc);
+        omp_free(C, llvm_omp_target_host_mem_alloc);
+        omp_free(d, llvm_omp_target_host_mem_alloc);
+    }
     
     //finalizeTargetDART();
     MPI_Finalize();
