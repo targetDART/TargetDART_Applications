@@ -75,6 +75,7 @@ int main(int argc, char** argv) {
         C[i] = 0;
     }
     
+    MPI_Barrier(MPI_COMM_WORLD);
     double time = omp_get_wtime();   
     #pragma omp target data map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(device)
     {

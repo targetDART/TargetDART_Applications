@@ -42,7 +42,8 @@ int main(int argc, char** argv) {
     for (int l = 0; l < omp_get_num_devices(); l++) {
         #pragma omp target enter data map(to:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l)
     }
-
+    
+    MPI_Barrier(MPI_COMM_WORLD);
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {

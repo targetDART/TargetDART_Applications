@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
         C[i] = 0;
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
