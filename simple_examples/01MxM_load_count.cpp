@@ -81,8 +81,6 @@ int main(int argc, char** argv) {
     for (int i = 0; i < d1 * d3; i++) {
         C[i] = 0;
     }
-    
-    MPI_Barrier(MPI_COMM_WORLD);
 
     double time = omp_get_wtime();   
     
