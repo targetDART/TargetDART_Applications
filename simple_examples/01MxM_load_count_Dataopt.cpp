@@ -58,11 +58,11 @@ int main(int argc, char** argv) {
     if (pinned) {
         A = (double*)omp_alloc(d1 * d2 * sizeof(double), llvm_omp_target_host_mem_alloc);
         B = (double*)omp_alloc(d2 * d3 * sizeof(double), llvm_omp_target_host_mem_alloc);
-        C = (double*)omp_alloc(d1 * d3 * sizeof(double), llvm_omp_target_host_mem_alloc);
+        C = (double*)omp_alloc(iter * d1 * d3 * sizeof(double), llvm_omp_target_host_mem_alloc);
     } else {
         A = (double*) malloc(d1 * d2 * sizeof(double));
         B = (double*) malloc(d2 * d3 * sizeof(double));
-        C = (double*) malloc(d1 * d3 * sizeof(double));
+        C = (double*) malloc(iter * d1 * d3 * sizeof(double));
     }
 
     for (int i = 0; i < d1 * d2; i++) {
@@ -80,12 +80,12 @@ int main(int argc, char** argv) {
     #pragma omp target data map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(device)
     {
     for (int l = 0; l < iter; l++) {
-        #pragma omp target teams distribute parallel for map(from:C[0:d1*d3]) device(device) collapse(2) nowait
+        #pragma omp target teams distribute parallel for map(from:C[l*d1*d3:(l+1)d1*d3]) device(device) collapse(2) nowait firstprivate(l)
         for (int i = 0; i < d1; i++) {
             for (int k = 0; k < d3; k++) {
                 C[i * d3 + k] = 0;
                 for (int j = 0; j < d2; j++) {
-                    C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
+                    C[i * d3 + k + l*d1*d3] += A[i * d2 + j] * B[j * d3 + k];
                 }   
             }
         }
@@ -99,6 +99,16 @@ int main(int argc, char** argv) {
     if (rank == 0) {
         std::cout << "duration on process " << rank << ": " << time << std::endl;
         //std::cout << "Result:  " << C[0] << std::endl;
+        int sum = 0;
+        for (int j = 0; j < d2; j++) {
+            sum += A[0 * d2 + j] * B[j * d3 + 0];
+        }
+        for (int i = 0; i < d1 * d3 * iter; i++) {
+            if (C[i] != sum) {
+                std::cout << "Error: C[" << i << "] = " << C[i] << " != " << sum << std::endl;
+                break;
+            }        
+        }
     }
     
     if (pinned) {
