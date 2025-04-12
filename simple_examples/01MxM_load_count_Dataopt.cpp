@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < d2 * d3; i++) {
         B[i] = 1;
     }
-    for (int i = 0; i < d1 * d3; i++) {
+    for (int i = 0; i < iter * d1 * d3; i++) {
         C[i] = 0;
     }
     
@@ -80,12 +80,13 @@ int main(int argc, char** argv) {
     #pragma omp target data map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(device)
     {
     for (int l = 0; l < iter; l++) {
-        #pragma omp target teams distribute parallel for map(from:C[l*d1*d3:(l+1)d1*d3]) device(device) collapse(2) nowait firstprivate(l)
+        double *C_l = C + l * d1 * d3;
+        #pragma omp target teams distribute parallel for map(from:C_l[0:d1*d3]) device(device) collapse(2) nowait
         for (int i = 0; i < d1; i++) {
             for (int k = 0; k < d3; k++) {
-                C[i * d3 + k] = 0;
+                C_l[i * d3 + k] = 0;
                 for (int j = 0; j < d2; j++) {
-                    C[i * d3 + k + l*d1*d3] += A[i * d2 + j] * B[j * d3 + k];
+                    C_l[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
                 }   
             }
         }
@@ -103,7 +104,7 @@ int main(int argc, char** argv) {
         for (int j = 0; j < d2; j++) {
             sum += A[0 * d2 + j] * B[j * d3 + 0];
         }
-        for (int i = 0; i < d1 * d3 * iter; i++) {
+        for (int i = 0; i < iter * d1 * d3; i++) {
             if (C[i] != sum) {
                 std::cout << "Error: C[" << i << "] = " << C[i] << " != " << sum << std::endl;
                 break;
