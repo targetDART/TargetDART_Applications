@@ -25,9 +25,9 @@ int main(int argc, char** argv) {
     
     int iter = std::atoi(argv[rank + 4]);
 
-    double * A = (double*) malloc(d1 * d2 * sizeof(double));
-    double * B = (double*) malloc(d2 * d3 * sizeof(double));
-    double * C = (double*) malloc(d1 * d3 * sizeof(double));
+    double* A = (double*) malloc(d1 * d2 * sizeof(double));
+    double* B = (double*) malloc(d2 * d3 * sizeof(double));
+    double* C = (double*) malloc(iter * d1 * d3 * sizeof(double));
     
     for (int i = 0; i < d1 * d2; i++) {
         A[i] = 1;
@@ -35,19 +35,20 @@ int main(int argc, char** argv) {
     for (int i = 0; i < d2 * d3; i++) {
         B[i] = 1;
     }
-    for (int i = 0; i < d1 * d3; i++) {
+    for (int i = 0; i < iter * d1 * d3; i++) {
         C[i] = 0;
     }
 
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
+        double *C_l = C + l * d1 * d3;
         #pragma omp parallel for collapse(2) nowait
         for (int i = 0; i < d1; i++) {
             for (int k = 0; k < d3; k++) {
-                C[i * d3 + k] = 0;
-                for (int j = 0; j < d2; j++) {                
-                    C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
+                C_l[i * d3 + k] = 0;
+                for (int j = 0; j < d2; j++) {
+                    C_l[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
                 }   
             }
         }
@@ -58,8 +59,20 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     time = omp_get_wtime() - time;
     
-    if (rank == 0)
-    std::cout << "duration on process " << rank << ": " << time << std::endl;
+    if (rank == 0) {
+        std::cout << "duration on process " << rank << ": " << time << std::endl;
+        //std::cout << "Result:  " << C[0] << std::endl;
+        int sum = 0;
+        for (int j = 0; j < d2; j++) {
+            sum += A[0 * d2 + j] * B[j * d3 + 0];
+        }
+        for (int i = 0; i < d1 * d3 * iter; i++) {
+            if (C[i] != sum) {
+                std::cout << "Error: C[" << i << "] = " << C[i] << " != " << sum << std::endl;
+                break;
+            }        
+        }
+    }
     
     free(A);
     free(B);

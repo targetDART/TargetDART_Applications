@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     double * A = (double*) malloc(d1 * d2 * sizeof(double));
     double * B = (double*) malloc(d2 * d3 * sizeof(double));
-    double * C = (double*) malloc(d1 * d3 * sizeof(double));
+    double * C = (double*) malloc(iter * d1 * d3 * sizeof(double));
     
     for (int i = 0; i < d1 * d2; i++) {
         A[i] = 1;
@@ -40,19 +40,20 @@ int main(int argc, char** argv) {
     }
 
     for (int l = 0; l < omp_get_num_devices(); l++) {
-        #pragma omp target enter data map(to:C[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l)
+        #pragma omp target enter data map(to:C[0:iter*d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) map(to:d1,d2,d3) device(l)
     }
     
     MPI_Barrier(MPI_COMM_WORLD);
     double time = omp_get_wtime();   
     
     for (int l = 0; l < iter; l++) {
+        double *C_l = C + l * d1 * d3;
         #pragma omp target teams distribute parallel for device(l%omp_get_num_devices())  collapse(2) nowait
         for (int i = 0; i < d1; i++) {
             for (int k = 0; k < d3; k++) {
-                C[i * d3 + k] = 0;
-                for (int j = 0; j < d2; j++) {                
-                    C[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
+                C_l[i * d3 + k] = 0;
+                for (int j = 0; j < d2; j++) {
+                    C_l[i * d3 + k] += A[i * d2 + j] * B[j * d3 + k];
                 }   
             }
         }
@@ -64,11 +65,28 @@ int main(int argc, char** argv) {
     time = omp_get_wtime() - time;
 
     for (int l = 0; l < omp_get_num_devices(); l++) {
-        #pragma omp target exit data map(from:C[0:d1*d3]) map(delete:A[0:d1*d2]) map(delete:B[0:d2*d3]) map(delete:d1,d2,d3) device(l)
+        #pragma omp target exit data map(delete:A[0:d1*d2]) map(delete:B[0:d2*d3]) map(delete:d1,d2,d3) device(l)
     }
     
-    if (rank == 0)
-    std::cout << "duration on process " << rank << ": " << time << std::endl;
+    for (int l = 0; l < iter; l++) {
+        double *C_l = C + l * d1 * d3;
+        #pragma omp target exit data map(C_l[0:d1*d3]) device(l%omp_get_num_devices())
+    }
+    
+    if (rank == 0) {
+        std::cout << "duration on process " << rank << ": " << time << std::endl;
+        //std::cout << "Result:  " << C[0] << std::endl;
+        int sum = 0;
+        for (int j = 0; j < d2; j++) {
+            sum += A[0 * d2 + j] * B[j * d3 + 0];
+        }
+        for (int i = 0; i < d1 * d3 * iter; i++) {
+            if (C[i] != sum) {
+                std::cout << "Error: C[" << i << "] = " << C[i] << " != " << sum << std::endl;
+                break;
+            }        
+        }
+    }
     
     free(A);
     free(B);
