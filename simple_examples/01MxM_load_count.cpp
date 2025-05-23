@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 	
 	// targetDART initialization
-    td_init((void *) &main);
+    //td_init((void *) &main);
 
     if (std::getenv("MODE") == NULL) {
         device = TARGETDART_ANY;
