@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     
     for (int l = 0; l < iter; l++) {
         double *C_l = C + l * d1 * d3;
-        #pragma omp target exit data map(C_l[0:d1*d3]) device(l%omp_get_num_devices())
+        #pragma omp target exit data map(from:C_l[0:d1*d3]) device(l%omp_get_num_devices())
     }
     
     if (rank == 0) {
