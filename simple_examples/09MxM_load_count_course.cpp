@@ -95,6 +95,7 @@ int main(int argc, char** argv) {
         }
     }
     
+    td_phase_progress(1);
     #pragma omp taskwait
 
     MPI_Barrier(MPI_COMM_WORLD);

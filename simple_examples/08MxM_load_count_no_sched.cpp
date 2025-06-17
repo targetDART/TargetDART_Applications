@@ -18,24 +18,6 @@ int main(int argc, char** argv) {
 	// targetDART initialization
     //td_init((void *) &main);
 
-    if (std::getenv("MODE") == NULL) {
-        device = TARGETDART_ANY;
-    } else {
-
-        std::string mode = std::getenv("MODE");
-	if (mode == "ANY_LOCAL") {
-	    device = TARGETDART_ANY_LOCAL;
-	} else if (mode == "GPU_LOCAL") {
-	    device = TARGETDART_OFFLOAD_LOCAL;
-	} else if (mode == "CPU") {
-            device = TARGETDART_CPU;
-        } else if (mode == "GPU") {
-            device = TARGETDART_OFFLOAD;
-        } else {
-            device = TARGETDART_ANY;
-        }
-    }
-
     //std::cout << "MPI size, rank: " << size << ", " << rank << std::endl;
 
     if (argc < 4 + size) {
@@ -84,7 +66,7 @@ int main(int argc, char** argv) {
     
     for (int l = 0; l < iter; l++) {
         double *C_l = C + l * d1 * d3;
-        #pragma omp target teams distribute parallel for map(from:C_l[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(device) collapse(2) nowait
+        #pragma omp target teams distribute parallel for map(from:C_l[0:d1*d3]) map(to:A[0:d1*d2]) map(to:B[0:d2*d3]) device(TARGETDART_DEVICE(l%4)) collapse(2) nowait
         for (int i = 0; i < d1; i++) {
             for (int k = 0; k < d3; k++) {
                 C_l[i * d3 + k] = 0;
